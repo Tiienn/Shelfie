@@ -1,0 +1,389 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  phone     String?
+  avatar    String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  households     HouseholdUser[]
+  ownedHouseholds Household[]    @relation("HouseholdOwner")
+  receipts       Receipt[]
+  groceryLists   GroceryList[]
+  userPreferences UserPreferences?
+
+  @@map("users")
+}
+
+model UserPreferences {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  theme                  String   @default("light") // light, dark, system
+  language               String   @default("en")
+  timezone               String   @default("UTC")
+  emailNotifications     Boolean  @default(true)
+  pushNotifications      Boolean  @default(true)
+  expiryAlertDays        Int      @default(3)
+  lowStockThreshold      Int      @default(2)
+  dietaryRestrictions    String[] // vegetarian, vegan, gluten-free, etc.
+  allergies              String[]
+  preferredUnits         String   @default("imperial") // imperial, metric
+  autoSyncEnabled        Boolean  @default(true)
+  dataRetentionDays      Int      @default(365)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+// Household Management
+model Household {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  settings  Json?    // JSON object for household settings
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  owner        User            @relation("HouseholdOwner", fields: [ownerId], references: [id])
+  members      HouseholdUser[]
+  pantryItems  PantryItem[]
+  groceryLists GroceryList[]
+  categories   Category[]
+
+  @@map("households")
+}
+
+model HouseholdUser {
+  id          String          @id @default(cuid())
+  householdId String
+  userId      String
+  role        HouseholdRole   @default(MEMBER)
+  permissions Json?
+  joinedAt    DateTime        @default(now())
+
+  // Relationships
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, userId])
+  @@map("household_users")
+}
+
+enum HouseholdRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+// Product Catalog
+model Item {
+  id                String   @id @default(cuid())
+  name              String
+  brand             String?
+  barcode           String?  @unique
+  categoryId        String?
+  defaultExpiryDays Int?
+  nutritionData     Json?    // JSON object for nutrition information
+  imageUrl          String?
+  verified          Boolean  @default(false) // Community verified items
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  category    Category?    @relation(fields: [categoryId], references: [id])
+  pantryItems PantryItem[]
+
+  @@index([barcode])
+  @@index([name])
+  @@map("items")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  icon        String?
+  color       String?
+  householdId String?  // null for global categories, householdId for custom categories
+  parentId    String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  household    Household? @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  parent       Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     Category[] @relation("CategoryHierarchy")
+  items        Item[]
+  pantryItems  PantryItem[]
+
+  @@unique([name, householdId])
+  @@index([householdId])
+  @@map("categories")
+}
+
+// Pantry Management
+model PantryItem {
+  id           String      @id @default(cuid())
+  householdId  String
+  itemId       String
+  categoryId   String?
+  quantity     Decimal
+  unit         String
+  location     StorageLocation @default(PANTRY)
+  expiryDate   DateTime?
+  purchaseDate DateTime?
+  price        Decimal?
+  notes        String?
+  customName   String?     // Override for item name
+  syncVersion  Int         @default(0)  // For offline sync
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relationships
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  item      Item      @relation(fields: [itemId], references: [id])
+  category  Category? @relation(fields: [categoryId], references: [id])
+
+  @@index([householdId])
+  @@index([expiryDate])
+  @@index([syncVersion])
+  @@index([location])
+  @@map("pantry_items")
+}
+
+enum StorageLocation {
+  PANTRY
+  FRIDGE
+  FREEZER
+  CUPBOARD
+  BASEMENT
+  GARAGE
+  OTHER
+}
+
+// Receipt Processing
+model Receipt {
+  id              String        @id @default(cuid())
+  userId          String
+  householdId     String?
+  storeName       String?
+  storeAddress    String?
+  imageUrl        String
+  ocrRawData      Json?         // Raw OCR output
+  parsedItems     Json?         // Processed items
+  totalAmount     Decimal?
+  purchaseDate    DateTime?
+  processingStatus ProcessingStatus @default(PENDING)
+  errorMessage    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([processingStatus])
+  @@index([createdAt])
+  @@map("receipts")
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  MANUAL_REVIEW
+}
+
+// Recipe Management
+model Recipe {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  ingredients    Json     // Array of ingredients with quantities
+  instructions   Json     // Array of instruction steps
+  prepTime       Int?     // minutes
+  cookTime       Int?     // minutes
+  servings       Int?
+  difficulty     Difficulty @default(MEDIUM)
+  nutritionInfo  Json?
+  tags           String[] // dietary tags, meal types, etc.
+  imageUrl       String?
+  source         String?  // external URL or "user_created"
+  verified       Boolean  @default(false)
+  rating         Decimal?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  favorites UserRecipeFavorite[]
+
+  @@index([tags])
+  @@index([difficulty])
+  @@index([rating])
+  @@map("recipes")
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model UserRecipeFavorite {
+  id       String @id @default(cuid())
+  userId   String
+  recipeId String
+  addedAt  DateTime @default(now())
+
+  // Relationships (if we had User model)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+  @@map("user_recipe_favorites")
+}
+
+// Grocery Lists
+model GroceryList {
+  id          String   @id @default(cuid())
+  householdId String
+  userId      String   // Creator
+  name        String
+  description String?
+  items       Json     // Array of grocery items
+  shared      Boolean  @default(false)
+  completed   Boolean  @default(false)
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([householdId])
+  @@index([userId])
+  @@index([completed])
+  @@map("grocery_lists")
+}
+
+// Meal Planning (Future feature)
+model MealPlan {
+  id          String   @id @default(cuid())
+  householdId String
+  date        DateTime @db.Date
+  mealType    MealType
+  recipeId    String?
+  recipeName  String?  // For custom meals
+  servings    Int      @default(1)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([householdId, date, mealType])
+  @@index([householdId, date])
+  @@map("meal_plans")
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+  DESSERT
+}
+
+// Notifications
+model Notification {
+  id          String            @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String
+  data        Json?             // Additional data for the notification
+  read        Boolean           @default(false)
+  actionTaken Boolean           @default(false)
+  expiresAt   DateTime?
+  createdAt   DateTime          @default(now())
+
+  @@index([userId, read])
+  @@index([expiresAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  EXPIRY_WARNING
+  LOW_STOCK
+  RECIPE_SUGGESTION
+  SHOPPING_REMINDER
+  SYSTEM_UPDATE
+  COMMUNITY_DEAL
+}
+
+// Analytics & Tracking
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String
+  householdId String?
+  action      String   // e.g., "add_item", "scan_receipt", "create_list"
+  entity      String?  // e.g., "pantry_item", "receipt", "grocery_list"
+  entityId    String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([householdId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+// System Management
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tableName String
+  recordId  String
+  action    String   // INSERT, UPDATE, DELETE
+  oldData   Json?
+  newData   Json?
+  userId    String?
+  timestamp DateTime @default(now())
+
+  @@index([tableName, recordId])
+  @@index([userId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}

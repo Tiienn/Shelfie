@@ -1,0 +1,27 @@
+# Development Dockerfile for Node.js server
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install development dependencies
+RUN apk add --no-cache git python3 make g++
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies (including dev dependencies)
+RUN npm install
+
+# Copy source code (will be overridden by volume in docker-compose)
+COPY . .
+
+# Expose port
+EXPOSE 3001
+
+# Set environment variables for development
+ENV NODE_ENV=development
+ENV LOG_LEVEL=debug
+
+# Start development server with hot reloading
+CMD ["npm", "run", "dev"]

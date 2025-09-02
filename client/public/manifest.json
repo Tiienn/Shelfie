@@ -1,0 +1,93 @@
+{
+  "short_name": "Shelfie",
+  "name": "Shelfie - Smart Pantry Management",
+  "description": "Comprehensive pantry and grocery management app for busy families",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#10B981",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": [
+    "productivity",
+    "lifestyle",
+    "food"
+  ],
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Add Item",
+      "short_name": "Add Item",
+      "description": "Quickly add an item to your pantry",
+      "url": "/pantry/add",
+      "icons": [
+        {
+          "src": "icons/shortcut-add-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Scan Receipt",
+      "short_name": "Scan",
+      "description": "Scan a receipt to update your pantry",
+      "url": "/scanner",
+      "icons": [
+        {
+          "src": "icons/shortcut-scan-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Grocery List",
+      "short_name": "List",
+      "description": "View your grocery list",
+      "url": "/grocery",
+      "icons": [
+        {
+          "src": "icons/shortcut-list-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Recipes",
+      "short_name": "Recipes",
+      "description": "Get recipe suggestions",
+      "url": "/recipes",
+      "icons": [
+        {
+          "src": "icons/shortcut-recipe-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "protocol_handlers": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
