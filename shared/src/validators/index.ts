@@ -173,19 +173,30 @@ export const updateGroceryListSchema = z.object({
 });
 
 // Meal plan validation schemas
-export const createMealPlanSchema = z.object({
+const baseMealPlanSchema = z.object({
   date: z.coerce.date(),
   mealType: z.nativeEnum(MealType),
   recipeId: z.string().uuid().optional(),
   recipeName: z.string().max(200).optional(),
   servings: z.number().int().positive().default(1),
   notes: z.string().max(500).optional(),
-}).refine((data) => data.recipeId || data.recipeName, {
+});
+
+export const createMealPlanSchema = baseMealPlanSchema.refine((data) => data.recipeId || data.recipeName, {
   message: 'Either recipeId or recipeName must be provided',
   path: ['recipeId'],
 });
 
-export const updateMealPlanSchema = createMealPlanSchema.partial();
+export const updateMealPlanSchema = baseMealPlanSchema.partial().refine((data) => {
+  // Only apply the refine if either field is provided
+  if (data.recipeId !== undefined || data.recipeName !== undefined) {
+    return data.recipeId || data.recipeName;
+  }
+  return true;
+}, {
+  message: 'Either recipeId or recipeName must be provided',
+  path: ['recipeId'],
+});
 
 // Receipt validation schemas
 export const receiptUploadSchema = z.object({

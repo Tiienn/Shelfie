@@ -43,7 +43,9 @@ npm run dev
 
 ### Access Points
 
-- **Frontend**: http://localhost:3000
+- **Landing Page**: http://localhost:3000 (public marketing)
+- **App Dashboard**: http://localhost:3000/app (authenticated)
+- **Login/Register**: http://localhost:3000/auth/login
 - **API**: http://localhost:3001
 - **API Docs**: http://localhost:3001/api/docs
 - **Database**: localhost:5432
@@ -68,12 +70,22 @@ Shelfie/
 
 ## 🎯 Core Features
 
-### ✅ Phase 1 - MVP
+### ✅ Implemented (Sprint 1)
+- **🏠 Marketing Landing Page**: Professional conversion-optimized homepage
+  - Hero section with value proposition ("Save 2+ hours weekly")
+  - Features showcase (OCR, AI recipes, offline-first, family sharing)
+  - Social proof with testimonials (1000+ families)
+  - SEO optimization and PWA install prompts
+- **🎨 Design System Foundation**: Complete component library with Tailwind CSS
+- **🔄 Smart Routing**: Public/auth/app route separation
+- **📱 PWA Ready**: Service worker registration and offline capabilities
+
+### ✅ Phase 1 - MVP (In Progress)
 - **Smart Pantry Management**: Track items, quantities, and expiration dates
 - **Receipt Scanning**: OCR-powered automatic inventory updates
 - **AI Recipe Suggestions**: Recommendations based on available ingredients
 - **Grocery Lists**: Auto-generated from low stock items
-- **Offline-First PWA**: Works without internet connection
+- **Real-time Sync**: Multi-device synchronization
 
 ### 🚀 Phase 2 (Planned)
 - Community deals hub

@@ -79,6 +79,54 @@ Busy mothers face significant challenges in household food management:
 
 ## 4. Core Features & Requirements
 
+### 4.0 Landing Page & User Acquisition (✅ COMPLETE - Sprint 1)
+
+#### 4.0.1 Public Marketing Experience
+**Status:** ✅ Complete
+**Priority:** P0 (Essential for user acquisition)
+
+**User Story:** As a busy parent discovering Shelfie, I want to understand the value proposition and sign up easily so that I can start saving time and reducing food waste.
+
+**Acceptance Criteria:**
+- [x] Professional landing page accessible at root URL (/)
+- [x] Hero section with compelling value proposition ("Save 2+ hours weekly")
+- [x] Features showcase highlighting 6 core capabilities
+- [x] Social proof with testimonials and usage statistics (1000+ families)
+- [x] Clear pricing communication ("Always Free")
+- [x] Mobile-first responsive design
+- [x] SEO optimization with meta tags and structured data
+- [x] PWA install prompts for mobile users
+
+**Landing Page Components:**
+- [x] Hero Section - Value proposition with dual CTAs
+- [x] Features Section - 6 key benefits (OCR, AI, offline, etc.)
+- [x] Social Proof Section - User testimonials and statistics  
+- [x] CTA Section - Final conversion push with pricing emphasis
+
+**Success Metrics:**
+- Target conversion rate: >5% (landing to registration)
+- Mobile traffic optimization: >60% mobile users
+- Page load time: <3 seconds
+- Accessibility score: >90 (WCAG 2.1 AA)
+
+#### 4.0.2 Smart Routing Architecture
+**Status:** ✅ Complete
+
+**Public Routes:**
+- `/` → Landing page (accessible to everyone)
+- `/auth/login` → Login page
+- `/auth/register` → Registration page
+
+**Authenticated Routes:**
+- `/app/*` → Main application (dashboard, pantry, scanner, etc.)
+
+**Smart Redirects:**
+- Authenticated users visiting auth pages → redirect to app
+- Unauthenticated users visiting app → redirect to landing
+- Unknown routes → redirect based on auth state
+
+### 4.1 Core Features & Requirements
+
 ### 4.1 Smart Pantry Inventory Management
 
 #### 4.1.1 Functional Requirements

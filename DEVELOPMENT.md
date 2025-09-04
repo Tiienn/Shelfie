@@ -62,7 +62,9 @@ npm run dev
 
 Once running, you can access:
 
-- **Frontend**: http://localhost:3000
+- **Landing Page**: http://localhost:3000 (public marketing page)
+- **App Dashboard**: http://localhost:3000/app (authenticated users)
+- **Login/Register**: http://localhost:3000/auth/login
 - **Backend API**: http://localhost:3001
 - **API Documentation**: http://localhost:3001/api/docs
 - **Database**: localhost:5432 (PostgreSQL)
@@ -162,13 +164,87 @@ cd server && npm run db:migrate
 3. **Module not found**: Run `npm install` in the respective directory
 4. **Docker permission denied**: Ensure Docker Desktop is running
 
+## 🎨 Component Development
+
+### Landing Page Structure
+
+The landing page is fully implemented with a comprehensive marketing flow:
+
+```
+client/src/components/landing/
+├── HeroSection.tsx          # Value proposition & main CTAs
+├── FeaturesSection.tsx      # 6 key features showcase
+├── SocialProofSection.tsx   # Testimonials & statistics
+├── CTASection.tsx          # Final conversion section
+└── index.ts                # Clean exports
+
+client/src/layouts/
+├── LandingLayout.tsx       # Marketing page wrapper
+├── AuthLayout.tsx          # Login/register wrapper  
+└── MainLayout.tsx          # Authenticated app wrapper
+
+client/src/pages/
+├── LandingPage.tsx         # Complete landing experience
+├── HomePage.tsx            # Authenticated dashboard
+└── auth/                   # Authentication pages
+```
+
+### Design System Components
+
+All components follow the Shelfie design system:
+
+```tsx
+// Example: Using the Button component
+import { Button } from '../components/common/Button';
+
+<Button
+  variant="primary"    // primary | secondary | outline | ghost | danger
+  size="xl"           // sm | md | lg | xl
+  onClick={handleClick}
+  leftIcon={<Icon />}
+>
+  Get Started Free
+</Button>
+```
+
+### New Routing Architecture
+
+```
+Public Routes (accessible to everyone):
+  /                    → LandingPage (marketing)
+
+Authentication Routes (unauthenticated users):
+  /auth/login         → LoginPage  
+  /auth/register      → RegisterPage
+  /auth/forgot-password → ForgotPasswordPage
+
+App Routes (authenticated users):
+  /app/               → HomePage (dashboard)
+  /app/pantry/*       → PantryPage
+  /app/scanner        → ScannerPage
+  /app/recipes/*      → RecipesPage
+  /app/grocery/*      → GroceryPage
+```
+
+### AI-Powered Development
+
+This project uses Claude Code sub-agents for specialized development:
+
+- **component-builder**: React components with design system compliance
+- **api-integrator**: API endpoints and data fetching logic
+- **database-helper**: Schema design and migration management
+- **testing-assistant**: Comprehensive test strategies
+- **performance-optimizer**: Bundle optimization and Core Web Vitals
+- **pwa-specialist**: Offline-first features and service workers
+
 ## 📚 Development Workflow
 
 1. **Feature Development**: Create feature branches from `develop`
-2. **Code Quality**: Run `npm run lint` and `npm run typecheck`
-3. **Testing**: Ensure tests pass with `npm test`
-4. **Commits**: Use conventional commit format
-5. **Pull Requests**: Target `develop` branch
+2. **AI Assistance**: Use Claude Code agents for specialized tasks
+3. **Code Quality**: Run `npm run lint` and `npm run typecheck`
+4. **Testing**: Ensure tests pass with `npm test`
+5. **Commits**: Use conventional commit format
+6. **Pull Requests**: Target `develop` branch
 
 ## 🚀 Production Build
 

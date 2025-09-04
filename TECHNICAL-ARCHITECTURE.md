@@ -14,18 +14,19 @@
 2. [System Overview](#2-system-overview)
 3. [Architecture Principles](#3-architecture-principles)
 4. [High-Level Architecture](#4-high-level-architecture)
-5. [Component Architecture](#5-component-architecture)
-6. [Data Architecture](#6-data-architecture)
-7. [Receipt Scanning OCR Pipeline](#7-receipt-scanning-ocr-pipeline)
-8. [AI Recipe Recommendation Engine](#8-ai-recipe-recommendation-engine)
-9. [Offline-First & PWA Architecture](#9-offline-first--pwa-architecture)
-10. [API Design](#10-api-design)
-11. [Security Architecture](#11-security-architecture)
-12. [Infrastructure & Deployment](#12-infrastructure--deployment)
-13. [Performance & Scalability](#13-performance--scalability)
-14. [Monitoring & Observability](#14-monitoring--observability)
-15. [Development Workflow](#15-development-workflow)
-16. [Architecture Decision Records](#16-architecture-decision-records)
+5. [Landing Page & Marketing Architecture](#5-landing-page--marketing-architecture)
+6. [Component Architecture](#6-component-architecture)
+7. [Data Architecture](#7-data-architecture)
+8. [Receipt Scanning OCR Pipeline](#8-receipt-scanning-ocr-pipeline)
+9. [AI Recipe Recommendation Engine](#9-ai-recipe-recommendation-engine)
+10. [Offline-First & PWA Architecture](#10-offline-first--pwa-architecture)
+11. [API Design](#11-api-design)
+12. [Security Architecture](#12-security-architecture)
+13. [Infrastructure & Deployment](#13-infrastructure--deployment)
+14. [Performance & Scalability](#14-performance--scalability)
+15. [Monitoring & Observability](#15-monitoring--observability)
+16. [Development Workflow](#16-development-workflow)
+17. [Architecture Decision Records](#17-architecture-decision-records)
 
 ---
 
@@ -215,33 +216,209 @@ graph TB
 
 ---
 
-## 5. Component Architecture
+## 5. Landing Page & Marketing Architecture
 
-### 5.1 Frontend Architecture (PWA)
+### 5.1 Public Marketing Experience (✅ COMPLETE)
+
+The Shelfie landing page implements a comprehensive conversion funnel designed specifically for busy parents discovering the app:
+
+#### 5.1.1 Landing Page Flow Architecture
+
+```mermaid
+graph TD
+    A[Visitor arrives at /] --> B[Hero Section]
+    B --> C[Value Proposition<br/>Save 2+ hours weekly]
+    C --> D[Features Showcase<br/>6 core capabilities]
+    D --> E[Social Proof<br/>Testimonials & stats]
+    E --> F[Final CTA<br/>Always Free]
+    F --> G{User Decision}
+    G -->|Get Started| H[Navigate to /auth/register]
+    G -->|Install App| I[PWA Installation Flow]
+    G -->|Watch Demo| J[Demo Modal/Features]
+```
+
+#### 5.1.2 Routing Architecture
 
 ```typescript
-// Frontend Module Structure
+// Smart routing based on authentication state
+const routes = {
+  public: {
+    '/': 'LandingPage',           // Marketing homepage
+  },
+  unauthenticated: {
+    '/auth/login': 'LoginPage',
+    '/auth/register': 'RegisterPage',
+    '/auth/forgot-password': 'ForgotPasswordPage',
+  },
+  authenticated: {
+    '/app': 'HomePage',           // Dashboard
+    '/app/pantry': 'PantryPage',
+    '/app/scanner': 'ScannerPage',
+    '/app/recipes': 'RecipesPage',
+    '/app/grocery': 'GroceryPage',
+  }
+};
+
+// Auto-redirects based on auth state
+- Authenticated users visiting /auth/* → /app
+- Unauthenticated users visiting /app/* → /
+- Unknown routes → / (public) or /app (authenticated)
+```
+
+#### 5.1.3 Landing Page Components Architecture
+
+```typescript
+// Landing page component hierarchy
+LandingLayout
+├── Header (simplified navigation)
+│   ├── Logo + Brand name
+│   ├── Login/Register buttons
+│   └── Mobile menu
+├── LandingPage
+│   ├── HeroSection
+│   │   ├── Value proposition
+│   │   ├── Primary CTA ("Get Started Free")
+│   │   ├── Secondary CTA ("Watch Demo")
+│   │   └── Trust indicators
+│   ├── FeaturesSection
+│   │   └── FeatureCard[6] (OCR, AI, Offline, etc.)
+│   ├── SocialProofSection
+│   │   ├── UsageStats (1000+ families)
+│   │   └── Testimonial[4] (realistic user stories)
+│   └── CTASection
+│       ├── Final conversion push
+│       ├── "Always Free" emphasis
+│       └── Install App button
+└── Footer (contact, legal, social)
+```
+
+#### 5.1.4 SEO & Performance Architecture
+
+```typescript
+// Meta tags and structured data
+const seoConfig = {
+  title: "Shelfie - Smart Pantry Management for Busy Families",
+  description: "Save 2+ hours weekly with AI-powered pantry tracking...",
+  openGraph: {
+    title: "Shelfie - Never Run Out of Food Again",
+    description: "Smart pantry management app that saves time and money",
+    images: ['/og-image-1200x630.jpg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Shelfie - Smart Pantry Manager",
+    description: "Save time and money with intelligent pantry tracking",
+  },
+  structuredData: {
+    "@type": "WebApplication",
+    "name": "Shelfie",
+    "applicationCategory": "Productivity",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+};
+```
+
+#### 5.1.5 Conversion Optimization
+
+```typescript
+// Key metrics and optimization targets
+const conversionMetrics = {
+  primaryGoal: 'Registration conversion',
+  targetRate: '>5%',
+  keyFunnelSteps: [
+    'Landing page visit',
+    'Features scroll engagement',
+    'CTA button clicks',
+    'Registration completion'
+  ],
+  optimizations: [
+    'Mobile-first responsive design',
+    'Social proof (1000+ families)',
+    'Free pricing emphasis',
+    'PWA installation prompts',
+    'Testimonial credibility'
+  ]
+};
+```
+
+### 5.2 Design System Foundation
+
+#### 5.2.1 Component Library Architecture
+
+```typescript
+// Reusable design system components (✅ IMPLEMENTED)
+export interface ButtonProps {
+  variant: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  size: 'sm' | 'md' | 'lg' | 'xl';
+  isLoading?: boolean;
+  fullWidth?: boolean;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
+}
+
+// Consistent styling approach
+const designTokens = {
+  colors: {
+    primary: '#059669',    // Emerald-600
+    secondary: '#6B7280',  // Gray-500
+    success: '#10B981',    // Emerald-500
+    warning: '#F59E0B',    // Amber-500
+    error: '#EF4444',      // Red-500
+  },
+  typography: {
+    fontFamily: 'Inter',
+    scale: 'Tailwind default scale',
+    lineHeight: '1.5 (readable for busy parents)'
+  },
+  spacing: '4px grid system',
+  borderRadius: '8px (modern, friendly)',
+  shadows: 'Subtle elevation system'
+};
+```
+
+## 6. Component Architecture
+
+### 6.1 Frontend Architecture (PWA)
+
+```typescript
+// Frontend Module Structure (✅ IMPLEMENTED)
 src/
 ├── components/           # Reusable UI components
-│   ├── common/
-│   ├── pantry/
-│   ├── recipes/
-│   └── scanner/
-├── hooks/               # Custom React hooks
-│   ├── useOfflineSync.ts
-│   ├── useCamera.ts
-│   └── useOCR.ts
+│   ├── common/          # Design system components (Button, Card, Input, Modal)
+│   ├── landing/         # Marketing landing page sections
+│   │   ├── HeroSection.tsx
+│   │   ├── FeaturesSection.tsx
+│   │   ├── SocialProofSection.tsx
+│   │   └── CTASection.tsx
+│   └── navigation/      # App navigation components
+├── layouts/             # Page layout wrappers
+│   ├── LandingLayout.tsx # Marketing pages wrapper
+│   ├── AuthLayout.tsx   # Authentication pages wrapper
+│   └── MainLayout.tsx   # Authenticated app wrapper
+├── pages/               # Top-level page components
+│   ├── LandingPage.tsx  # Public marketing page
+│   ├── HomePage.tsx     # Authenticated dashboard
+│   └── auth/           # Authentication pages
+├── hooks/               # Custom React hooks (✅ IMPLEMENTED)
+│   ├── useInstallPrompt.ts # PWA installation prompts
+│   └── useSyncManager.ts   # Offline synchronization
 ├── services/            # API & service layer
-│   ├── api/
-│   ├── offline/
-│   └── sync/
-├── store/               # State management (Redux/Zustand)
-│   ├── slices/
-│   └── middleware/
-├── workers/             # Web Workers & Service Workers
-│   ├── service-worker.ts
-│   └── sync-worker.ts
-└── utils/               # Utilities & helpers
+│   ├── index.ts        # Service initialization
+│   └── api/           # API client modules
+├── store/               # Zustand state management (✅ IMPLEMENTED)
+│   └── slices/        # State slices
+│       ├── authSlice.ts    # Authentication state
+│       └── appSlice.ts     # Global app state
+├── types/               # TypeScript definitions
+│   └── react-helmet-async.d.ts
+├── utils/               # Utilities & helpers
+│   └── serviceWorker.ts # PWA service worker registration
+└── setupTests.ts        # Test configuration
 ```
 
 #### 5.1.1 State Management Architecture

@@ -10,6 +10,7 @@ import { useInstallPrompt } from './hooks/useInstallPrompt';
 // Layouts
 import { MainLayout } from './layouts/MainLayout';
 import { AuthLayout } from './layouts/AuthLayout';
+import { LandingLayout } from './layouts/LandingLayout';
 
 // Loading Components
 import { LoadingSpinner } from './components/common/LoadingSpinner';
@@ -17,6 +18,7 @@ import { OfflineIndicator } from './components/common/OfflineIndicator';
 import { InstallPrompt } from './components/common/InstallPrompt';
 
 // Lazy-loaded pages
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const HomePage = React.lazy(() => import('./pages/HomePage'));
 const PantryPage = React.lazy(() => import('./pages/PantryPage'));
 const ScannerPage = React.lazy(() => import('./pages/ScannerPage'));
@@ -76,17 +78,21 @@ function App() {
         }
       >
         <Routes>
-          {/* Authentication Routes */}
-          {!isAuthenticated ? (
-            <Route path="/*" element={<AuthLayout />}>
+          {/* Public Routes - Available to everyone */}
+          <Route path="/" element={<LandingPage />} />
+          
+          {/* Authentication Routes - Only for unauthenticated users */}
+          {!isAuthenticated && (
+            <Route path="/auth/*" element={<AuthLayout />}>
               <Route path="login" element={<LoginPage />} />
               <Route path="register" element={<RegisterPage />} />
               <Route path="forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
             </Route>
-          ) : (
-            /* Authenticated Routes */
-            <Route path="/*" element={<MainLayout />}>
+          )}
+          
+          {/* Authenticated Routes - Only for authenticated users */}
+          {isAuthenticated && (
+            <Route path="/app/*" element={<MainLayout />}>
               <Route index element={<HomePage />} />
               <Route path="pantry/*" element={<PantryPage />} />
               <Route path="scanner" element={<ScannerPage />} />
@@ -94,10 +100,39 @@ function App() {
               <Route path="grocery/*" element={<GroceryPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
-              <Route path="404" element={<NotFoundPage />} />
-              <Route path="*" element={<Navigate to="/404" replace />} />
             </Route>
           )}
+          
+          {/* Redirects and Error Routes */}
+          <Route path="/404" element={<NotFoundPage />} />
+          
+          {/* Handle authentication-based redirects */}
+          <Route 
+            path="/login" 
+            element={
+              isAuthenticated ? 
+                <Navigate to="/app" replace /> : 
+                <Navigate to="/auth/login" replace />
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              isAuthenticated ? 
+                <Navigate to="/app" replace /> : 
+                <Navigate to="/auth/register" replace />
+            } 
+          />
+          
+          {/* Catch-all route */}
+          <Route 
+            path="*" 
+            element={
+              isAuthenticated ? 
+                <Navigate to="/app" replace /> : 
+                <Navigate to="/" replace />
+            } 
+          />
         </Routes>
       </Suspense>
     </div>
